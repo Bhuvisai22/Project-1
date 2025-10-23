@@ -1,0 +1,29 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws --version
+      - $(aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 898857450402.dkr.ecr.ap-south-1.amazonaws.com)
+      - REPOSITORY_URI=898857450402.dkr.ecr.ap-south-1.amazonaws.com/project1/testrepo
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-8) # Optionally set tag to git commit hash
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - docker push $IMAGE_URI
+      - echo "Writing Kubernetes manifests..."
+      - sed -i "s|898857450402.dkr.ecr.ap-south-1.amazonaws.com/project1/testrepo:latest|$IMAGE_URI|" k8s/deployment.yaml
+      - kubectl apply -f k8s/deployment.yaml
+      - kubectl apply -f k8s/service.yaml
+
+artifacts:
+  files:
+    - k8s/*.yaml
+    - buildspec.yml
