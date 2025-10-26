@@ -1,0 +1,22 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: Btain-tasks-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: Btain-tasks-app
+  template:
+    metadata:
+      labels:
+        app:Btain-tasks-app
+    spec:
+      containers:
+      - name: Btain-tasks-app
+        image: myapp1
+        ports:
+        - containerPort: 80
+
+
